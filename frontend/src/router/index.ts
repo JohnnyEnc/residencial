@@ -19,6 +19,7 @@ const router = createRouter({
         { path: '', name: 'admin-dashboard', component: () => import('../views/admin/DashboardView.vue') },
         { path: 'units', name: 'admin-units', component: () => import('../views/admin/UnitsView.vue') },
         { path: 'users', name: 'admin-users', component: () => import('../views/admin/UsersView.vue') },
+        { path: 'directory', name: 'admin-directory', component: () => import('../views/admin/DirectoryView.vue') },
         { path: 'payments', name: 'admin-payments', component: () => import('../views/admin/PaymentsView.vue') },
         { path: 'reports', name: 'admin-reports', component: () => import('../views/admin/ReportsView.vue') },
         { path: 'announcements', name: 'admin-announcements', component: () => import('../views/admin/AnnouncementsView.vue') },
@@ -30,6 +31,7 @@ const router = createRouter({
       meta: { roles: ['resident'] },
       children: [
         { path: '', name: 'resident-home', component: () => import('../views/resident/HomeView.vue') },
+        { path: 'directory', name: 'resident-directory', component: () => import('../views/resident/DirectoryView.vue') },
         { path: 'payments', name: 'resident-payments', component: () => import('../views/resident/PaymentsView.vue') },
         { path: 'reports', name: 'resident-reports', component: () => import('../views/resident/ReportsView.vue') },
         { path: 'reports/new', name: 'resident-report-new', component: () => import('../views/resident/NewReportView.vue') },

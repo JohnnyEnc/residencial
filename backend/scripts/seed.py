@@ -10,12 +10,45 @@ from app.core.security import get_password_hash
 from app.models.announcement import Announcement, AnnouncementPriority
 from app.models.payment import ChargeStatus, FeePeriod, Payment, PaymentStatus, UnitCharge
 from app.models.report import Report, ReportStatus
+from app.models.service import ServiceCategory, ServiceProvider
 from app.models.unit import MemberRelation, Unit, UnitMember, UnitStatus
 from app.models.user import User, UserRole
+from app.services.schema import ensure_schema
+
+
+def seed_service_directory(db: Session, admin_id: int | None = None) -> None:
+    if db.query(ServiceProvider).count() > 0:
+        return
+    providers = [
+        ("Plomería Rápida RD", ServiceCategory.plomeria, "809-555-1001", "Emergencias 24h, fugas y destapes"),
+        ("ElectroHogar López", ServiceCategory.electricidad, "809-555-1002", "Instalaciones y fallas eléctricas"),
+        ("Taller Mecánico del Este", ServiceCategory.mecanica, "809-555-1003", "Mecánica ligera y baterías"),
+        ("Cerrajería Express", ServiceCategory.cerrajeria, "809-555-1004", "Apertura de puertas y cambios de bombín"),
+        ("FrioTotal Aires", ServiceCategory.aires, "809-555-1005", "Mantenimiento e instalación de AC"),
+        ("Limpieza Brillante", ServiceCategory.limpieza, "809-555-1006", "Limpieza profunda de apartamentos"),
+        ("Pinturas del Caribe", ServiceCategory.pintura, "809-555-1007", "Pintura interior y exterior"),
+        ("Jardines Verde Vivo", ServiceCategory.jardineria, "809-555-1008", "Poda y mantenimiento de áreas verdes"),
+    ]
+    for name, category, phone, description in providers:
+        db.add(
+            ServiceProvider(
+                name=name,
+                category=category,
+                phone=phone,
+                whatsapp=phone,
+                description=description,
+                active=True,
+                created_by=admin_id,
+            )
+        )
+    db.commit()
+    print("Service directory seeded.")
 
 
 def seed(db: Session) -> None:
     if db.query(User).filter(User.email == "admin@example.com").first():
+        admin = db.query(User).filter(User.email == "admin@example.com").first()
+        seed_service_directory(db, admin.id if admin else None)
         print("Seed already applied.")
         return
 
@@ -34,20 +67,24 @@ def seed(db: Session) -> None:
         role=UserRole.staff,
     )
     residents_data = [
-        ("ana@example.com", "Ana Pérez", "A-101"),
-        ("luis@example.com", "Luis Gómez", "A-102"),
-        ("maria@example.com", "María López", "B-201"),
-        ("jose@example.com", "José Ruiz", "B-202"),
-        ("sofia@example.com", "Sofía Díaz", "C-301"),
-        ("pedro@example.com", "Pedro Santana", "C-302"),
+        ("ana@example.com", "Ana Pérez", "A-101", "809-111-0101", "809-111-0102"),
+        ("luis@example.com", "Luis Gómez", "A-102", "809-111-0201", None),
+        ("maria@example.com", "María López", "B-201", "809-111-0301", "809-111-0302"),
+        ("jose@example.com", "José Ruiz", "B-202", "809-111-0401", None),
+        ("sofia@example.com", "Sofía Díaz", "C-301", "809-111-0501", None),
+        ("pedro@example.com", "Pedro Santana", "C-302", "809-111-0601", "809-111-0602"),
     ]
     residents: list[User] = []
-    for email, name, _ in residents_data:
+    for email, name, _, phone, phone2 in residents_data:
         residents.append(
             User(
                 email=email,
                 password_hash=get_password_hash("vecino123"),
                 name=name,
+                phone=phone,
+                phone_secondary=phone2,
+                whatsapp=phone,
+                show_in_directory=True,
                 role=UserRole.resident,
             )
         )
@@ -56,7 +93,7 @@ def seed(db: Session) -> None:
     db.flush()
 
     units: list[Unit] = []
-    for _, _, code in residents_data:
+    for _, _, code, _, _ in residents_data:
         block, number = code.split("-")
         units.append(Unit(code=code, block=block, number=number, floor=number[0], status=UnitStatus.active))
     db.add_all(units)
@@ -177,6 +214,7 @@ def seed(db: Session) -> None:
     )
 
     db.commit()
+    seed_service_directory(db, admin.id)
     print("Seed OK")
     print("  admin@example.com / admin123")
     print("  staff@example.com / staff123")
@@ -184,8 +222,7 @@ def seed(db: Session) -> None:
 
 
 if __name__ == "__main__":
-    # Ensure tables exist if migrations not run
-    Base.metadata.create_all(bind=engine)
+    ensure_schema()
     session = SessionLocal()
     try:
         seed(session)

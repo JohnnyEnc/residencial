@@ -28,6 +28,9 @@ def create_user(payload: UserCreate, db: DbSession, _: AdminUser):
         password_hash=get_password_hash(payload.password),
         name=payload.name,
         phone=payload.phone,
+        phone_secondary=payload.phone_secondary,
+        whatsapp=payload.whatsapp,
+        show_in_directory=payload.show_in_directory,
         role=payload.role,
         active=payload.active,
     )

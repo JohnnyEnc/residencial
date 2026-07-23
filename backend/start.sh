@@ -15,15 +15,20 @@ if [[ "${DATABASE_URL}" == sqlite* ]]; then
   echo "Using SQLite at ${DATABASE_URL}"
   echo "Creating tables..."
   python - <<'PY'
-from app.core.database import Base, engine
-import app.models  # noqa: F401
+from app.services.schema import ensure_schema
 
-Base.metadata.create_all(bind=engine)
+ensure_schema()
 print("Tables ready")
 PY
 else
   echo "Using Postgres; running Alembic migrations..."
   alembic upgrade head
+  python - <<'PY'
+from app.services.schema import ensure_schema
+
+ensure_schema()
+print("Schema ensured")
+PY
 fi
 
 # Sembrar usuarios demo si la DB está vacía (idempotente).

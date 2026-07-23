@@ -10,6 +10,7 @@ const links = [
   { to: '/admin', label: 'Dashboard', exact: true },
   { to: '/admin/units', label: 'Viviendas' },
   { to: '/admin/users', label: 'Usuarios' },
+  { to: '/admin/directory', label: 'Directorio' },
   { to: '/admin/payments', label: 'Cuotas' },
   { to: '/admin/reports', label: 'Reportes' },
   { to: '/admin/announcements', label: 'Avisos' },

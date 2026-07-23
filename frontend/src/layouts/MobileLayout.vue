@@ -15,6 +15,7 @@ const nav = computed(() => {
   }
   return [
     { to: '/app', label: 'Inicio', icon: '🏠' },
+    { to: '/app/directory', label: 'Directorio', icon: '📒' },
     { to: '/app/payments', label: 'Pagos', icon: '💳' },
     { to: '/app/reports', label: 'Reportes', icon: '📝' },
     { to: '/app/profile', label: 'Perfil', icon: '👤' },

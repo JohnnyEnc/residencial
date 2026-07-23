@@ -12,10 +12,48 @@ export interface User {
   email: string
   name: string
   phone: string | null
+  phone_secondary?: string | null
+  whatsapp?: string | null
+  show_in_directory?: boolean
   role: UserRole
   active: boolean
   created_at: string
   units: UnitBrief[]
+}
+
+export interface ResidentContact {
+  id: number
+  name: string
+  phone: string | null
+  phone_secondary: string | null
+  whatsapp: string | null
+  unit_codes: string[]
+  show_in_directory: boolean
+}
+
+export type ServiceCategory =
+  | 'plomeria'
+  | 'electricidad'
+  | 'mecanica'
+  | 'cerrajeria'
+  | 'aires'
+  | 'limpieza'
+  | 'pintura'
+  | 'jardineria'
+  | 'construccion'
+  | 'otro'
+
+export interface ServiceProvider {
+  id: number
+  name: string
+  category: ServiceCategory
+  phone: string
+  phone_alt: string | null
+  whatsapp: string | null
+  description: string | null
+  active: boolean
+  created_by: number | null
+  created_at: string
 }
 
 export interface Unit {
