@@ -1,0 +1,11 @@
+.git
+.venv
+backend/.venv
+backend/residencial.db
+backend/uploads/*
+frontend/node_modules
+frontend/dist
+**/__pycache__
+*.pyc
+.env
+.DS_Store

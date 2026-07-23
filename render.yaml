@@ -1,0 +1,29 @@
+databases:
+  - name: residencial-db
+    plan: basic
+
+services:
+  - type: web
+    name: residencial
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: residencial-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: SEED_DEMO
+        value: "true"
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: UPLOAD_DIR
+        value: "/app/uploads"
+      - key: WEB_CONCURRENCY
+        value: "2"
