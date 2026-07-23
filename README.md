@@ -6,7 +6,7 @@ App web mobile-first para gestión de condominios: junta de vecinos (admin), por
 
 - **Backend:** FastAPI + SQLAlchemy + JWT + Gunicorn
 - **Frontend:** Vue 3 + TypeScript + Pinia + Tailwind + Chart.js
-- **DB:** SQLite (local) / PostgreSQL (Render u otro hosting)
+- **DB:** SQLite (local) / PostgreSQL gratis en [Neon](https://neon.tech) (producción en Render)
 
 ## Arranque local
 
@@ -31,33 +31,36 @@ npm run dev
 
 App local: http://127.0.0.1:5173 · API: http://127.0.0.1:8000/docs
 
-## Desplegar en Render
+## Desplegar en Render (100% free)
 
-El repo incluye `render.yaml` + `Dockerfile` (Blueprint). Una sola URL sirve el API y el frontend Vue.
+Render ya no ofrece Postgres gratis. El Blueprint usa:
 
-### Pasos
+- **Web Service free** (Docker) en Render
+- **Postgres free** en Neon (o Supabase)
 
-1. Sube el proyecto a GitHub/GitLab.
-2. En [Render](https://dashboard.render.com) → **New** → **Blueprint**.
-3. Conecta el repo y confirma el blueprint (`render.yaml`).
-4. Espera el build Docker (Node construye Vue; Python corre FastAPI).
-5. Abre la URL del servicio (`https://residencial.onrender.com` o la que asigne Render).
+### 1. Crear la base en Neon (gratis)
 
-### Qué crea el Blueprint
+1. Entra a [neon.tech](https://neon.tech) y crea un proyecto.
+2. Copia la **connection string** (formato `postgresql://...`).
+3. Asegúrate de que incluya SSL (Neon suele traer `sslmode=require`; si no, la app lo añade sola).
 
-| Recurso | Nombre | Notas |
-|---------|--------|-------|
-| PostgreSQL | `residencial-db` | Plan Basic (Render ya no ofrece Postgres free) |
-| Web (Docker) | `residencial` | Plan Free; se duerme con inactividad |
+### 2. Desplegar el Blueprint en Render
+
+1. [Render](https://dashboard.render.com) → **New** → **Blueprint**.
+2. Conecta el repo `residencial`.
+3. Cuando pida **`DATABASE_URL`**, pega la connection string de Neon.
+4. Confirma el deploy.
+
+Quedará una sola URL con frontend + API (`https://residencial.onrender.com` o similar).
 
 ### Variables de entorno
 
 | Variable | Descripción |
 |----------|-------------|
-| `DATABASE_URL` | Inyectada desde Postgres de Render |
+| `DATABASE_URL` | Connection string de Neon (obligatoria) |
 | `SECRET_KEY` | Generada automáticamente |
 | `CORS_ORIGINS` | `*` |
-| `SEED_DEMO` | `true` la 1ª vez; luego cámbialo a `false` en el dashboard |
+| `SEED_DEMO` | `true` la 1ª vez; luego cámbialo a `false` |
 | `WEB_CONCURRENCY` | Workers de Gunicorn (default `2`) |
 
 ### Cuentas demo (si `SEED_DEMO=true`)
@@ -68,24 +71,15 @@ El repo incluye `render.yaml` + `Dockerfile` (Blueprint). Una sola URL sirve el 
 | Vecino | ana@example.com | vecino123 |
 | Staff | staff@example.com | staff123 |
 
-### Alternativa: Postgres gratis externo
+### Alternativa: Supabase
 
-1. Crea DB en [Neon](https://neon.tech) o Supabase.
-2. En el Web Service, define `DATABASE_URL` manualmente (quita el binding `fromDatabase` o crea el servicio a mano).
-3. Build/Start siguen siendo el `Dockerfile`.
-
-### Deploy manual sin Blueprint
-
-- **Runtime:** Docker
-- **Dockerfile path:** `./Dockerfile`
-- **Health check:** `/health`
-- Env vars: tabla de arriba + `DATABASE_URL`
+Misma idea: crea un proyecto gratis, copia la URI de Postgres y úsala como `DATABASE_URL`.
 
 ### Notas
 
 - El plan free del web se duerme; el primer request puede tardar ~30–60s.
 - Archivos en `uploads/` son efímeros; para producción real usa S3/R2.
-- Build local del mismo artefacto: `docker build -t residencial .`
+- Build local: `docker build -t residencial .`
 
 ## Funcionalidades MVP
 

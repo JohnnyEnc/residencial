@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -6,11 +7,22 @@ _ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
 def normalize_database_url(url: str) -> str:
-    """Render entrega postgres://; SQLAlchemy/psycopg2 necesitan postgresql+psycopg2://."""
+    """Normaliza URLs de Render/Neon/Supabase para SQLAlchemy + psycopg2."""
     if url.startswith("postgres://"):
-        return "postgresql+psycopg2://" + url[len("postgres://") :]
-    if url.startswith("postgresql://") and "+psycopg2" not in url and "+asyncpg" not in url:
-        return "postgresql+psycopg2://" + url[len("postgresql://") :]
+        url = "postgresql+psycopg2://" + url[len("postgres://") :]
+    elif url.startswith("postgresql://") and "+psycopg2" not in url and "+asyncpg" not in url:
+        url = "postgresql+psycopg2://" + url[len("postgresql://") :]
+
+    if url.startswith("sqlite"):
+        return url
+
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    is_local = host in {"localhost", "127.0.0.1", ""}
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    if not is_local and "sslmode" not in query:
+        query["sslmode"] = "require"
+        url = urlunparse(parsed._replace(query=urlencode(query)))
     return url
 
 
