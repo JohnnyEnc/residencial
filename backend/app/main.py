@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1 import api_router
@@ -27,28 +27,40 @@ else:
 
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 
+# Health primero y simple: Render usa esto para marcar el servicio como vivo.
+@app.get("/health")
+def health():
+    payload: dict = {"status": "ok"}
+    try:
+        db = SessionLocal()
+        try:
+            payload["database"] = True
+            payload["users"] = db.query(User).count()
+        finally:
+            db.close()
+    except Exception as exc:  # noqa: BLE001
+        payload["database"] = False
+        payload["users"] = 0
+        payload["error"] = str(exc)
+    return payload
+
+
 upload_path = ensure_upload_dir()
 app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
 app.include_router(api_router)
 
 STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
-API_PREFIXES = ("api/", "docs", "redoc", "openapi.json", "health", "uploads/")
 
 
-@app.get("/health")
-def health():
-    db_ok = False
-    users = 0
-    try:
-        db = SessionLocal()
-        try:
-            users = db.query(User).count()
-            db_ok = True
-        finally:
-            db.close()
-    except Exception as exc:  # noqa: BLE001
-        return {"status": "degraded", "database": False, "error": str(exc), "users": 0}
-    return {"status": "ok", "database": db_ok, "users": users}
+def _is_api_path(path: str) -> bool:
+    return (
+        path.startswith("/api")
+        or path.startswith("/uploads")
+        or path.startswith("/assets")
+        or path in {"/health", "/docs", "/redoc", "/openapi.json"}
+        or path.startswith("/docs/")
+        or path.startswith("/redoc/")
+    )
 
 
 if STATIC_DIR.exists():
@@ -56,16 +68,29 @@ if STATIC_DIR.exists():
     if assets_dir.exists():
         app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
-    @app.get("/{full_path:path}")
-    async def spa_fallback(full_path: str):
-        # Nunca devolver el SPA para rutas de API/docs (evita HTML donde el front espera JSON).
-        if full_path.startswith(API_PREFIXES) or full_path in {"docs", "redoc", "openapi.json", "health"}:
-            raise HTTPException(status_code=404, detail="Not Found")
+    @app.get("/")
+    async def spa_root():
+        return FileResponse(STATIC_DIR / "index.html")
 
-        candidate = STATIC_DIR / full_path
-        if full_path and candidate.is_file():
+    @app.exception_handler(404)
+    async def not_found_handler(request: Request, _exc: Exception):
+        """SPA fallback sin shadowing de /health ni /api (evita que Render tumbe el servicio)."""
+        path = request.url.path
+        if _is_api_path(path) or request.method != "GET":
+            detail = getattr(_exc, "detail", "Not Found")
+            return JSONResponse({"detail": detail}, status_code=404)
+
+        # Archivos estáticos en la raíz del build (vite.svg, favicon, etc.)
+        candidate = STATIC_DIR / path.lstrip("/")
+        if path != "/" and candidate.is_file():
             return FileResponse(candidate)
+
         index = STATIC_DIR / "index.html"
         if index.exists():
             return FileResponse(index)
-        return {"detail": "Frontend no desplegado. Ejecuta el build de Vue."}
+        return JSONResponse({"detail": "Frontend no desplegado"}, status_code=404)
+else:
+
+    @app.get("/")
+    def root_without_frontend():
+        return {"detail": "Frontend no desplegado. Revisa el build Docker."}
