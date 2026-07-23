@@ -12,7 +12,8 @@ FROM python:3.12-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
-    UPLOAD_DIR=/app/uploads
+    UPLOAD_DIR=/app/uploads \
+    DATABASE_URL=sqlite:////app/data/residencial.db
 
 WORKDIR /app
 
@@ -26,7 +27,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
 COPY --from=frontend /frontend/dist ./static
 
-RUN mkdir -p /app/uploads && chmod +x /app/start.sh
+RUN mkdir -p /app/uploads /app/data && chmod +x /app/start.sh
 
 EXPOSE 8000
 

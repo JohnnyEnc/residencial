@@ -1,6 +1,5 @@
-# Blueprint 100% free en Render:
-# - Web Service (free) + Postgres externo gratis (Neon / Supabase)
-# - En el dashboard de Render, pega DATABASE_URL de Neon cuando cree el Blueprint.
+# Blueprint 100% free en Render, sin DB externa.
+# Usa SQLite dentro del contenedor (los datos se reinician si el servicio se redespliega o se duerme y recrea el disco).
 
 services:
   - type: web
@@ -12,7 +11,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
-        sync: false
+        value: sqlite:////app/data/residencial.db
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
@@ -24,4 +23,4 @@ services:
       - key: UPLOAD_DIR
         value: "/app/uploads"
       - key: WEB_CONCURRENCY
-        value: "2"
+        value: "1"
