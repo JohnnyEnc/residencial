@@ -1,13 +1,19 @@
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+_DEFAULT_SQLITE = "sqlite:////app/data/residencial.db"
 
 
 def normalize_database_url(url: str) -> str:
-    """Normaliza URLs de Render/Neon/Supabase para SQLAlchemy + psycopg2."""
+    """Normaliza URLs para SQLAlchemy + psycopg2 / SQLite."""
+    url = (url or "").strip()
+    if not url:
+        return _DEFAULT_SQLITE
+
     if url.startswith("postgres://"):
         url = "postgresql+psycopg2://" + url[len("postgres://") :]
     elif url.startswith("postgresql://") and "+psycopg2" not in url and "+asyncpg" not in url:
@@ -40,6 +46,13 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     upload_dir: str = "uploads"
     seed_demo: bool = False
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def empty_database_url(cls, value: object) -> object:
+        if value is None or (isinstance(value, str) and not value.strip()):
+            return _DEFAULT_SQLITE
+        return value
 
     @property
     def sqlalchemy_database_url(self) -> str:

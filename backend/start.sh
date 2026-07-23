@@ -4,11 +4,14 @@ set -euo pipefail
 cd "$(dirname "$0")"
 export PYTHONPATH=.
 
-# Por defecto: SQLite local al contenedor (sin servicios externos).
-export DATABASE_URL="${DATABASE_URL:-sqlite:////app/data/residencial.db}"
+# Si DATABASE_URL viene vacío (Blueprint sync:false sin valor), forzar SQLite.
+if [ -z "${DATABASE_URL:-}" ]; then
+  export DATABASE_URL="sqlite:////app/data/residencial.db"
+fi
+
+mkdir -p /app/data /app/uploads
 
 if [[ "${DATABASE_URL}" == sqlite* ]]; then
-  mkdir -p /app/data "$(dirname "${DATABASE_URL#sqlite:///}")" 2>/dev/null || mkdir -p /app/data
   echo "Using SQLite at ${DATABASE_URL}"
   echo "Creating tables..."
   python - <<'PY'
@@ -23,13 +26,11 @@ else
   alembic upgrade head
 fi
 
-if [ "${SEED_DEMO:-false}" = "true" ]; then
-  echo "Seeding demo data (if empty)..."
-  python scripts/seed.py
-fi
+# Sembrar usuarios demo si la DB está vacía (idempotente).
+echo "Running seed (no-op if users already exist)..."
+python scripts/seed.py
 
 PORT="${PORT:-8000}"
-# SQLite + varios workers causa bloqueos; forzar 1 worker si es sqlite.
 if [[ "${DATABASE_URL}" == sqlite* ]]; then
   WEB_CONCURRENCY=1
 fi

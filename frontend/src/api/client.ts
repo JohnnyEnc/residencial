@@ -12,10 +12,14 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// No forzar redirect en fallos de login/me (el formulario muestra el error).
 api.interceptors.response.use(
   (r) => r,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    const url = String(error.config?.url || '')
+    const isAuthCall = url.includes('/auth/login') || url.includes('/auth/me')
+    if (status === 401 && !isAuthCall) {
       localStorage.removeItem('token')
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login'

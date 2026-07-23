@@ -15,9 +15,18 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const { data } = await api.post('/auth/login', { email, password })
-      token.value = data.access_token
-      localStorage.setItem('token', data.access_token)
-      await fetchMe()
+      // Solo persistir token si /me también responde (evita estado a medias en Render).
+      const previous = api.defaults.headers.common.Authorization
+      api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`
+      try {
+        const me = await api.get<User>('/auth/me')
+        token.value = data.access_token
+        localStorage.setItem('token', data.access_token)
+        user.value = me.data
+      } finally {
+        if (previous) api.defaults.headers.common.Authorization = previous
+        else delete api.defaults.headers.common.Authorization
+      }
     } finally {
       loading.value = false
     }
@@ -38,7 +47,8 @@ export const useAuthStore = defineStore('auth', () => {
   function homePath() {
     if (role.value === 'admin') return '/admin'
     if (role.value === 'staff') return '/staff'
-    return '/app'
+    if (role.value === 'resident') return '/app'
+    return '/login'
   }
 
   return { user, token, loading, isAuthenticated, role, login, fetchMe, logout, homePath }

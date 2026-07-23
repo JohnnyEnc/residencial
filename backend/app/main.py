@@ -1,12 +1,14 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1 import api_router
 from app.core.config import settings
+from app.core.database import SessionLocal
+from app.models.user import User
 from app.services.uploads import ensure_upload_dir
 
 app = FastAPI(title="Residencial API", version="1.0.0")
@@ -30,11 +32,23 @@ app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
 app.include_router(api_router)
 
 STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
+API_PREFIXES = ("api/", "docs", "redoc", "openapi.json", "health", "uploads/")
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    db_ok = False
+    users = 0
+    try:
+        db = SessionLocal()
+        try:
+            users = db.query(User).count()
+            db_ok = True
+        finally:
+            db.close()
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "degraded", "database": False, "error": str(exc), "users": 0}
+    return {"status": "ok", "database": db_ok, "users": users}
 
 
 if STATIC_DIR.exists():
@@ -44,7 +58,10 @@ if STATIC_DIR.exists():
 
     @app.get("/{full_path:path}")
     async def spa_fallback(full_path: str):
-        # No interceptar rutas de API ya registradas; este catch-all es el último.
+        # Nunca devolver el SPA para rutas de API/docs (evita HTML donde el front espera JSON).
+        if full_path.startswith(API_PREFIXES) or full_path in {"docs", "redoc", "openapi.json", "health"}:
+            raise HTTPException(status_code=404, detail="Not Found")
+
         candidate = STATIC_DIR / full_path
         if full_path and candidate.is_file():
             return FileResponse(candidate)

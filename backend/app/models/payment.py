@@ -2,10 +2,11 @@ import enum
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Numeric, String, UniqueConstraint, func
+from sqlalchemy import Date, DateTime, ForeignKey, Numeric, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.models.enums import str_enum
 
 
 class ChargeStatus(str, enum.Enum):
@@ -45,7 +46,7 @@ class UnitCharge(Base):
     period_id: Mapped[int] = mapped_column(ForeignKey("fee_periods.id", ondelete="CASCADE"), index=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     status: Mapped[ChargeStatus] = mapped_column(
-        Enum(ChargeStatus, name="charge_status"), default=ChargeStatus.pending, index=True
+        str_enum(ChargeStatus, "charge_status"), default=ChargeStatus.pending, index=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -67,7 +68,7 @@ class Payment(Base):
     reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[PaymentStatus] = mapped_column(
-        Enum(PaymentStatus, name="payment_status"), default=PaymentStatus.submitted, index=True
+        str_enum(PaymentStatus, "payment_status"), default=PaymentStatus.submitted, index=True
     )
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
 

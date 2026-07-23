@@ -13,9 +13,18 @@ async function onSubmit() {
   error.value = ''
   try {
     await auth.login(email.value, password.value)
-    router.push(auth.homePath())
+    await router.replace(auth.homePath())
   } catch (e: any) {
-    error.value = e?.response?.data?.detail || 'No se pudo iniciar sesión'
+    const detail = e?.response?.data?.detail
+    if (Array.isArray(detail)) {
+      error.value = detail.map((x: any) => x.msg || JSON.stringify(x)).join(' · ')
+    } else if (typeof detail === 'string') {
+      error.value = detail
+    } else if (e?.message === 'Network Error') {
+      error.value = 'No hay conexión con el servidor. Si acabas de abrir la app en Render, espera ~30s y reintenta.'
+    } else {
+      error.value = 'No se pudo iniciar sesión'
+    }
   }
 }
 </script>

@@ -1,10 +1,11 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.models.enums import str_enum
 
 
 class AnnouncementPriority(str, enum.Enum):
@@ -20,7 +21,7 @@ class Announcement(Base):
     title: Mapped[str] = mapped_column(String(200))
     body: Mapped[str] = mapped_column(Text)
     priority: Mapped[AnnouncementPriority] = mapped_column(
-        Enum(AnnouncementPriority, name="announcement_priority"), default=AnnouncementPriority.normal
+        str_enum(AnnouncementPriority, "announcement_priority"), default=AnnouncementPriority.normal
     )
     published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
