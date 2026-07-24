@@ -17,40 +17,62 @@ const links = [
 ]
 
 const active = computed(() => route.path)
+
+function isActive(link: { to: string; exact?: boolean }) {
+  return link.exact ? active.value === link.to : active.value.startsWith(link.to)
+}
 </script>
 
 <template>
-  <div class="mx-auto flex min-h-screen max-w-7xl flex-col md:flex-row">
-    <aside class="border-b border-brand-200/70 bg-brand-800 text-white md:w-64 md:border-b-0 md:border-r md:border-brand-700">
-      <div class="flex items-center justify-between px-5 py-4">
+  <div class="mx-auto flex min-h-screen max-w-[1400px] flex-col md:flex-row">
+    <aside
+      class="relative overflow-hidden border-b border-white/10 bg-dusk text-white md:flex md:min-h-screen md:w-[17.5rem] md:flex-col md:border-b-0"
+    >
+      <div
+        class="pointer-events-none absolute -right-10 top-0 h-40 w-40 rounded-full bg-lime/20 blur-2xl"
+      />
+      <div class="relative flex items-center justify-between px-5 py-5">
         <div>
-          <p class="font-display text-xl tracking-tight">Residencial</p>
-          <p class="text-xs text-brand-200">Junta de vecinos</p>
+          <p class="font-display text-2xl font-extrabold tracking-tight">Residencial</p>
+          <p class="mt-0.5 text-[11px] uppercase tracking-[0.2em] text-lime/80">Junta de vecinos</p>
         </div>
-        <button class="text-sm text-brand-200 underline md:hidden" @click="auth.logout(); $router.push('/login')">Salir</button>
+        <button
+          class="text-xs font-semibold uppercase tracking-wider text-lagoon-100 underline decoration-lime/50 md:hidden"
+          @click="auth.logout(); $router.push('/login')"
+        >
+          Salir
+        </button>
       </div>
-      <nav class="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:overflow-visible md:px-3 md:pb-6">
+
+      <nav class="relative flex gap-1 overflow-x-auto px-3 pb-4 md:flex-1 md:flex-col md:gap-1 md:overflow-visible md:px-3 md:pb-6">
         <RouterLink
           v-for="link in links"
           :key="link.to"
           :to="link.to"
-          class="whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold text-brand-100 hover:bg-brand-700"
-          :class="{
-            'bg-brand-600 text-white': link.exact ? active === link.to : active.startsWith(link.to),
-          }"
+          class="whitespace-nowrap rounded-2xl px-3 py-2.5 text-sm font-semibold tracking-tight transition"
+          :class="
+            isActive(link)
+              ? 'bg-lime text-ink shadow-lift'
+              : 'text-lagoon-100 hover:bg-white/10'
+          "
         >
           {{ link.label }}
         </RouterLink>
       </nav>
-      <div class="mt-auto hidden border-t border-brand-700 px-5 py-4 md:block">
-        <p class="text-sm font-semibold">{{ auth.user?.name }}</p>
-        <p class="text-xs text-brand-200">{{ auth.user?.email }}</p>
-        <button class="mt-3 text-sm text-brand-100 underline" @click="auth.logout(); $router.push('/login')">
+
+      <div class="relative mt-auto hidden border-t border-white/10 px-5 py-5 md:block">
+        <p class="font-display text-sm font-bold">{{ auth.user?.name }}</p>
+        <p class="truncate text-xs text-lagoon-200">{{ auth.user?.email }}</p>
+        <button
+          class="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-lime"
+          @click="auth.logout(); $router.push('/login')"
+        >
           Cerrar sesión
         </button>
       </div>
     </aside>
-    <main class="flex-1 px-4 py-5 md:px-8 md:py-8">
+
+    <main class="flex-1 px-4 py-6 md:px-8 md:py-9">
       <RouterView />
     </main>
   </div>

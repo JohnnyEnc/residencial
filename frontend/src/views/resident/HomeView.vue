@@ -30,56 +30,66 @@ const pending = () => charges.value.filter((c) => c.status !== 'paid')
 </script>
 
 <template>
-  <div class="space-y-5">
-    <div>
-      <h1 class="page-title">Hola, {{ auth.user?.name?.split(' ')[0] }}</h1>
-      <p class="text-sm text-brand-700">
-        Vivienda:
-        <span v-for="u in auth.user?.units" :key="u.id" class="font-semibold">{{ u.code }} </span>
+  <div class="space-y-6">
+    <header class="reveal">
+      <p class="eyebrow">Residencial</p>
+      <h1 class="page-title mt-2">
+        Hola, {{ auth.user?.name?.split(' ')[0] }}
+      </h1>
+      <p class="mt-2 text-sm text-lagoon-800/80">
+        Vivienda
+        <span v-for="u in auth.user?.units" :key="u.id" class="font-semibold text-ink"> {{ u.code }}</span>
       </p>
+    </header>
+
+    <div class="reveal-2 grid grid-cols-2 gap-3">
+      <div class="stat-tile">
+        <p class="relative z-10 text-[11px] font-semibold uppercase tracking-[0.16em] text-lime/90">Pendientes</p>
+        <p class="relative z-10 mt-2 font-display text-4xl font-extrabold">{{ pending().length }}</p>
+      </div>
+      <div class="rounded-[1.35rem] bg-white/75 px-4 py-4 shadow-insetline backdrop-blur">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-lagoon-600">Al día</p>
+        <p class="mt-2 font-display text-4xl font-extrabold text-ink">
+          {{ charges.filter((c) => c.status === 'paid').length }}
+        </p>
+      </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
-      <div class="card">
-        <p class="text-xs uppercase text-brand-600">Pendientes</p>
-        <p class="font-display text-3xl">{{ pending().length }}</p>
-      </div>
-      <div class="card">
-        <p class="text-xs uppercase text-brand-600">Al día</p>
-        <p class="font-display text-3xl">{{ charges.filter((c) => c.status === 'paid').length }}</p>
-      </div>
-    </div>
-
-    <section class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h2 class="font-display text-xl">Avisos</h2>
-      </div>
-      <div
+    <section class="reveal-3 space-y-3">
+      <h2 class="section-title">Avisos</h2>
+      <button
         v-for="a in announcements.slice(0, 4)"
         :key="a.id"
-        class="card cursor-pointer"
-        :class="{ 'ring-2 ring-brand-300': !a.read }"
+        type="button"
+        class="w-full rounded-[1.25rem] px-4 py-3.5 text-left transition"
+        :class="a.read ? 'bg-white/60 shadow-insetline' : 'bg-dusk text-white shadow-lift'"
         @click="markRead(a.id)"
       >
-        <p class="font-semibold">{{ a.title }}</p>
-        <p class="mt-1 text-sm text-brand-800">{{ a.body }}</p>
-      </div>
+        <p class="font-display text-base font-bold tracking-tight">{{ a.title }}</p>
+        <p class="mt-1 text-sm" :class="a.read ? 'text-lagoon-800' : 'text-lagoon-100/85'">{{ a.body }}</p>
+      </button>
     </section>
 
-    <section class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h2 class="font-display text-xl">Cuotas recientes</h2>
-        <RouterLink to="/app/payments" class="text-sm font-semibold text-brand-700">Ver todas</RouterLink>
+    <section class="reveal-4 space-y-3">
+      <div class="flex items-end justify-between gap-3">
+        <h2 class="section-title">Cuotas</h2>
+        <RouterLink to="/app/payments" class="text-xs font-semibold uppercase tracking-[0.14em] text-lagoon-700">
+          Ver todas
+        </RouterLink>
       </div>
-      <div v-for="c in charges.slice(0, 3)" :key="c.id" class="card flex items-center justify-between">
+      <div
+        v-for="c in charges.slice(0, 3)"
+        :key="c.id"
+        class="flex items-center justify-between gap-3 border-b border-lagoon-900/8 py-3 last:border-0"
+      >
         <div>
-          <p class="font-semibold">{{ c.period_label }}</p>
-          <p class="text-sm">{{ money(c.amount) }}</p>
+          <p class="font-display font-semibold tracking-tight">{{ c.period_label }}</p>
+          <p class="text-sm text-lagoon-700">{{ money(c.amount) }}</p>
         </div>
         <StatusBadge :status="c.status" />
       </div>
     </section>
 
-    <RouterLink to="/app/reports/new" class="btn-primary w-full">Reportar incidencia</RouterLink>
+    <RouterLink to="/app/reports/new" class="btn-primary w-full py-3">Reportar incidencia</RouterLink>
   </div>
 </template>

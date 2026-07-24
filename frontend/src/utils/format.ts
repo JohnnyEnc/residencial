@@ -26,17 +26,17 @@ export function statusLabel(s: string) {
 
 export function statusClass(s: string) {
   const map: Record<string, string> = {
-    pending: 'bg-amber-100 text-amber-800',
-    submitted: 'bg-sky-100 text-sky-800',
-    paid: 'bg-emerald-100 text-emerald-800',
-    overdue: 'bg-red-100 text-red-800',
-    open: 'bg-amber-100 text-amber-800',
-    assigned: 'bg-sky-100 text-sky-800',
-    in_progress: 'bg-indigo-100 text-indigo-800',
-    resolved: 'bg-emerald-100 text-emerald-800',
-    closed: 'bg-slate-100 text-slate-700',
-    approved: 'bg-emerald-100 text-emerald-800',
-    rejected: 'bg-red-100 text-red-800',
+    pending: 'bg-amber-100 text-amber-900',
+    submitted: 'bg-lagoon-100 text-lagoon-800',
+    paid: 'bg-lime/50 text-ink',
+    overdue: 'bg-ember/15 text-ember',
+    open: 'bg-amber-100 text-amber-900',
+    assigned: 'bg-lagoon-100 text-lagoon-800',
+    in_progress: 'bg-dusk/10 text-dusk',
+    resolved: 'bg-lime/40 text-ink',
+    closed: 'bg-mist text-lagoon-800',
+    approved: 'bg-lime/50 text-ink',
+    rejected: 'bg-ember/15 text-ember',
   }
-  return map[s] || 'bg-slate-100 text-slate-700'
+  return map[s] || 'bg-mist text-lagoon-800'
 }

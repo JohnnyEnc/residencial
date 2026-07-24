@@ -6,7 +6,7 @@ defineProps<{ status: string }>()
 
 <template>
   <span
-    class="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide"
+    class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em]"
     :class="statusClass(status)"
   >
     {{ statusLabel(status) }}

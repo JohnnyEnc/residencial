@@ -44,7 +44,7 @@ const doughnutData = computed(() => {
           Number(stats.value.overdue_amount),
           Number(stats.value.submitted_amount),
         ],
-        backgroundColor: ['#317e6c', '#d97706', '#c45c3e', '#0284c7'],
+        backgroundColor: ['#1a6c59', '#d97706', '#e4572e', '#3ea388'],
         borderWidth: 0,
       },
     ],
@@ -59,14 +59,14 @@ const barData = computed(() => {
       {
         label: 'Pagado',
         data: stats.value.monthly_collection.map((m) => Number(m.paid)),
-        backgroundColor: '#317e6c',
+        backgroundColor: '#1a6c59',
       },
       {
         label: 'Pendiente / deuda',
         data: stats.value.monthly_collection.map(
           (m) => Number(m.pending) + Number(m.overdue) + Number(m.submitted),
         ),
-        backgroundColor: '#c45c3e',
+        backgroundColor: '#e4572e',
       },
     ],
   }
@@ -80,7 +80,7 @@ const reportsBar = computed(() => {
       {
         label: 'Reportes',
         data: stats.value.reports_by_status.map((r) => r.count),
-        backgroundColor: '#4a9a86',
+        backgroundColor: '#c6f04d',
       },
     ],
   }
@@ -89,119 +89,127 @@ const reportsBar = computed(() => {
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
-  plugins: { legend: { position: 'bottom' as const } },
+  plugins: {
+    legend: {
+      position: 'bottom' as const,
+      labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Syne' } },
+    },
+  },
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div>
-      <h1 class="page-title">Dashboard</h1>
-      <p class="mt-1 text-sm text-brand-700">Resumen de recaudación, deudas y operación del residencial.</p>
+  <div class="space-y-7">
+    <div class="reveal">
+      <p class="eyebrow">Operación</p>
+      <h1 class="page-title mt-2">Dashboard</h1>
+      <p class="mt-2 max-w-xl text-sm text-lagoon-800/80">
+        Recaudación, deudas y pulso del residencial en un vistazo.
+      </p>
     </div>
 
-    <p v-if="loading" class="text-sm text-brand-700">Cargando…</p>
-    <p v-else-if="error" class="text-sm text-coral">{{ error }}</p>
+    <p v-if="loading" class="text-sm text-lagoon-700">Cargando…</p>
+    <p v-else-if="error" class="text-sm text-ember">{{ error }}</p>
 
     <template v-else-if="stats">
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div class="card">
-          <p class="text-xs font-semibold uppercase tracking-wide text-brand-600">Tasa de cobro</p>
-          <p class="mt-2 font-display text-3xl">{{ stats.collection_rate }}%</p>
+      <div class="reveal-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="stat-tile">
+          <p class="relative z-10 text-[11px] font-semibold uppercase tracking-[0.16em] text-lime/90">Tasa de cobro</p>
+          <p class="relative z-10 mt-2 font-display text-4xl font-extrabold">{{ stats.collection_rate }}%</p>
         </div>
-        <div class="card">
-          <p class="text-xs font-semibold uppercase tracking-wide text-brand-600">Recaudado</p>
-          <p class="mt-2 font-display text-3xl text-brand-700">{{ money(stats.paid_amount) }}</p>
+        <div class="panel">
+          <p class="eyebrow">Recaudado</p>
+          <p class="mt-2 font-display text-3xl font-extrabold text-lagoon-800">{{ money(stats.paid_amount) }}</p>
         </div>
-        <div class="card">
-          <p class="text-xs font-semibold uppercase tracking-wide text-brand-600">Por cobrar</p>
-          <p class="mt-2 font-display text-3xl text-coral">
+        <div class="panel">
+          <p class="eyebrow">Por cobrar</p>
+          <p class="mt-2 font-display text-3xl font-extrabold text-ember">
             {{ money(Number(stats.pending_amount) + Number(stats.overdue_amount) + Number(stats.submitted_amount)) }}
           </p>
         </div>
-        <div class="card">
-          <p class="text-xs font-semibold uppercase tracking-wide text-brand-600">Reportes abiertos</p>
-          <p class="mt-2 font-display text-3xl">{{ stats.open_reports }}</p>
-          <p class="mt-1 text-xs text-brand-600">{{ stats.pending_payment_reviews }} pagos por revisar</p>
+        <div class="panel">
+          <p class="eyebrow">Reportes abiertos</p>
+          <p class="mt-2 font-display text-3xl font-extrabold">{{ stats.open_reports }}</p>
+          <p class="mt-1 text-xs text-lagoon-600">{{ stats.pending_payment_reviews }} pagos por revisar</p>
         </div>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2">
-        <div class="card">
-          <h2 class="font-display text-xl">Pagado vs deuda (periodo actual)</h2>
+      <div class="reveal-3 grid gap-4 lg:grid-cols-2">
+        <div class="panel">
+          <h2 class="section-title">Pagado vs deuda</h2>
           <div class="mt-4 h-64">
             <Doughnut :data="doughnutData" :options="chartOptions" />
           </div>
         </div>
-        <div class="card">
-          <h2 class="font-display text-xl">Recaudación mensual</h2>
+        <div class="panel">
+          <h2 class="section-title">Recaudación mensual</h2>
           <div class="mt-4 h-64">
             <Bar :data="barData" :options="chartOptions" />
           </div>
         </div>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2">
-        <div class="card">
-          <h2 class="mb-3 font-display text-xl">Quienes ya pagaron</h2>
-          <div class="max-h-80 space-y-2 overflow-y-auto">
+      <div class="reveal-4 grid gap-4 lg:grid-cols-2">
+        <div class="panel">
+          <h2 class="section-title mb-3">Quienes ya pagaron</h2>
+          <div class="max-h-80 space-y-1 overflow-y-auto">
             <div
               v-for="row in stats.paid_units"
               :key="'p-' + row.unit_id"
-              class="flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2 text-sm"
+              class="flex items-center justify-between gap-3 border-b border-lagoon-900/6 py-2.5 text-sm last:border-0"
             >
               <div>
-                <p class="font-semibold">{{ row.unit_code }}</p>
-                <p class="text-xs text-brand-700">{{ row.resident_name || 'Sin residente' }}</p>
+                <p class="font-display font-semibold">{{ row.unit_code }}</p>
+                <p class="text-xs text-lagoon-700">{{ row.resident_name || 'Sin residente' }}</p>
               </div>
               <div class="text-right">
                 <p class="font-semibold">{{ money(row.amount) }}</p>
                 <StatusBadge status="paid" />
               </div>
             </div>
-            <p v-if="!stats.paid_units.length" class="text-sm text-brand-600">Nadie ha pagado aún.</p>
+            <p v-if="!stats.paid_units.length" class="text-sm text-lagoon-600">Nadie ha pagado aún.</p>
           </div>
         </div>
 
-        <div class="card">
-          <h2 class="mb-3 font-display text-xl">Quienes faltan por pagar</h2>
-          <div class="max-h-80 space-y-2 overflow-y-auto">
+        <div class="panel">
+          <h2 class="section-title mb-3">Quienes faltan por pagar</h2>
+          <div class="max-h-80 space-y-1 overflow-y-auto">
             <div
               v-for="row in stats.unpaid_units"
               :key="'u-' + row.unit_id"
-              class="flex items-center justify-between rounded-xl bg-sand px-3 py-2 text-sm ring-1 ring-brand-100"
+              class="flex items-center justify-between gap-3 border-b border-lagoon-900/6 py-2.5 text-sm last:border-0"
             >
               <div>
-                <p class="font-semibold">{{ row.unit_code }}</p>
-                <p class="text-xs text-brand-700">{{ row.resident_name || 'Sin residente' }}</p>
+                <p class="font-display font-semibold">{{ row.unit_code }}</p>
+                <p class="text-xs text-lagoon-700">{{ row.resident_name || 'Sin residente' }}</p>
               </div>
               <div class="text-right">
                 <p class="font-semibold">{{ money(row.amount) }}</p>
                 <StatusBadge :status="row.status" />
               </div>
             </div>
-            <p v-if="!stats.unpaid_units.length" class="text-sm text-brand-600">Todas las viviendas al día.</p>
+            <p v-if="!stats.unpaid_units.length" class="text-sm text-lagoon-600">Todas las viviendas al día.</p>
           </div>
         </div>
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-3">
-        <div class="card sm:col-span-1">
-          <p class="text-sm text-brand-700">Viviendas</p>
-          <p class="font-display text-3xl">{{ stats.total_units }}</p>
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div class="rounded-[1.25rem] bg-dusk px-4 py-4 text-white">
+          <p class="text-xs uppercase tracking-[0.14em] text-lime/80">Viviendas</p>
+          <p class="mt-1 font-display text-3xl font-extrabold">{{ stats.total_units }}</p>
         </div>
-        <div class="card sm:col-span-1">
-          <p class="text-sm text-brand-700">Vecinos</p>
-          <p class="font-display text-3xl">{{ stats.total_residents }}</p>
+        <div class="rounded-[1.25rem] bg-dusk px-4 py-4 text-white">
+          <p class="text-xs uppercase tracking-[0.14em] text-lime/80">Vecinos</p>
+          <p class="mt-1 font-display text-3xl font-extrabold">{{ stats.total_residents }}</p>
         </div>
-        <div class="card sm:col-span-1">
-          <p class="text-sm text-brand-700">Personal</p>
-          <p class="font-display text-3xl">{{ stats.total_staff }}</p>
+        <div class="rounded-[1.25rem] bg-dusk px-4 py-4 text-white">
+          <p class="text-xs uppercase tracking-[0.14em] text-lime/80">Personal</p>
+          <p class="mt-1 font-display text-3xl font-extrabold">{{ stats.total_staff }}</p>
         </div>
       </div>
 
-      <div class="card">
-        <h2 class="font-display text-xl">Reportes por estado</h2>
+      <div class="panel">
+        <h2 class="section-title">Reportes por estado</h2>
         <div class="mt-4 h-56">
           <Bar :data="reportsBar" :options="chartOptions" />
         </div>
